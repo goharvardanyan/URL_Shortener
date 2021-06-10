@@ -25,7 +25,7 @@ public class HttpServer {
                         "<html>\n" +
                         "<head>\n" +
                         "\t<title>URL Shortener</title>\n" +
-                        "<style>"+
+                        "<style>" +
                         ".root{" +
                         "background-color:  #FFFFFF;" +
                         "}" +
@@ -34,7 +34,7 @@ public class HttpServer {
                         "background: #0B1F67;" +
                         "color: white;" +
                         "}" +
-                        ".urlInput{"+
+                        ".urlInput{" +
                         "width: 490px;" +
                         " height: 30px;" +
                         " border: 1px solid #999999;" +
@@ -43,14 +43,14 @@ public class HttpServer {
                         "margin-right: 10px" +
                         "}" +
                         ".h1tag{" +
-                        "display: flex;"+
+                        "display: flex;" +
                         "justify-content: center;" +
                         "}" +
                         ".form{" +
-                        "display: flex;"+
+                        "display: flex;" +
                         "justify-content: center;" +
                         "background: #0B1736;" +
-                        "}"+
+                        "}" +
                         "</style>" +
                         "</head>\n" +
                         "<body class=\"root\">\n" +
@@ -76,12 +76,13 @@ public class HttpServer {
                 Transaction transaction = session.beginTransaction();
                 Serializable urlMappingId = session.save(urlMapping);
                 System.out.println(urlMappingId);
+                transaction.commit();
 
                 String html = ("<!DOCTYPE html>\n" +
                         "<html>\n" +
                         "<head>\n" +
                         "\t<title>URL Shortener</title>\n" +
-                        "<style>"+
+                        "<style>" +
                         ".root{" +
                         "background-color: #FFFFFF;" +
                         "}" +
@@ -90,7 +91,7 @@ public class HttpServer {
                         "background: #0B1F67;" +
                         "color: white;" +
                         "}" +
-                        ".urlInput{"+
+                        ".urlInput{" +
                         "width: 490px;" +
                         " height: 30px;" +
                         " border: 1px solid #999999;" +
@@ -99,7 +100,7 @@ public class HttpServer {
                         "margin-right: 10px" +
                         "}" +
                         ".h1tag{" +
-                        "display: flex;"+
+                        "display: flex;" +
                         "justify-content: center;" +
                         "}" +
                         ".refContainer{" +
@@ -110,7 +111,7 @@ public class HttpServer {
                         "background: #0B1736;" +
                         "display: flex;" +
                         "justify-content: center;" +
-                        "}"+
+                        "}" +
                         "</style>" +
                         "</head>\n" +
                         "<body class=\"root\">\n" +
@@ -126,7 +127,6 @@ public class HttpServer {
                 context
                         .contentType("text/html")
                         .result(html);
-                transaction.commit();
             }
         });
 
@@ -135,8 +135,6 @@ public class HttpServer {
 
             String targetUrl = "";
             try (Session session = sessionFactory.openSession()) {
-
-                Transaction transaction = session.beginTransaction();
                 try {
                     final Query<UrlMapping> query = session
                             .createQuery("select u from UrlMapping u where u.shortUrl = :shortUrl", UrlMapping.class)
@@ -144,12 +142,9 @@ public class HttpServer {
                     List<UrlMapping> urlMappings = query.getResultList();
                     if (urlMappings != null && !urlMappings.isEmpty()) {
                         targetUrl = urlMappings.get(0).getUrl();
-                        transaction.commit();
                     }
-
                 } catch (Exception e) {
                     e.printStackTrace();
-                    transaction.rollback();
                 }
             }
             context.header("Location", targetUrl)
@@ -161,7 +156,6 @@ public class HttpServer {
     private static String ensureUniqueness(Session session, Supplier<String> supplier) {
         boolean isUnique = false;
         String value = null;
-        Transaction transaction = session.beginTransaction();
 
         while (!isUnique) {
             value = supplier.get();
@@ -172,7 +166,6 @@ public class HttpServer {
                 List<UrlMapping> urlMappings = query.getResultList();
                 if (urlMappings != null && urlMappings.isEmpty()) {
                     isUnique = true;
-                    transaction.commit();
                 }
             } catch (Exception e) {
                 e.printStackTrace();
